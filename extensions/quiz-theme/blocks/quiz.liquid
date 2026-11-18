@@ -1,0 +1,35 @@
+{% comment %}
+  Inline product quiz. Add it to any page from the theme editor:
+  Customize → Add section/block → Apps → "Product quiz".
+{% endcomment %}
+<div
+  class="rq-root"
+  data-ritfit-quiz="{{ block.settings.quiz_id | escape }}"
+  data-redirect-to-cart="{{ block.settings.redirect_to_cart }}"
+  {{ block.shopify_attributes }}
+>
+  <p class="rq-loading">{{ 'quiz.loading' | t }}</p>
+</div>
+
+{% schema %}
+{
+  "name": "Product quiz",
+  "target": "section",
+  "javascript": "ritfit-quiz.js",
+  "stylesheet": "ritfit-quiz.css",
+  "settings": [
+    {
+      "type": "text",
+      "id": "quiz_id",
+      "label": "Quiz ID",
+      "info": "Copy it from the RitFit Quiz app (Quizzes → your quiz → Install)."
+    },
+    {
+      "type": "checkbox",
+      "id": "redirect_to_cart",
+      "label": "Go to cart after adding products",
+      "default": false
+    }
+  ]
+}
+{% endschema %}

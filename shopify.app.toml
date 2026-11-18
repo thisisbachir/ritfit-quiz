@@ -1,0 +1,45 @@
+# RitFit Quiz — Shopify app configuration.
+# Run `npm run config:link` once to fill in client_id / application_url from your Partner Dashboard app.
+name = "RitFit Quiz"
+client_id = ""
+application_url = "https://example.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+
+[access_scopes]
+# read_products: build recommendations from the catalog
+# read_orders:   attribute purchases to quiz responses (orders/create webhook)
+scopes = "read_products,read_orders"
+
+[auth]
+redirect_urls = [ "https://example.com/auth/callback" ]
+
+# Storefront calls go to https://<shop>/apps/ritfit-quiz/* and are forwarded,
+# signed by Shopify, to <app>/proxy/*
+[app_proxy]
+url = "/proxy"
+prefix = "apps"
+subpath = "ritfit-quiz"
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  # Any catalog change marks the cached catalog stale
+  [[webhooks.subscriptions]]
+  topics = [ "products/create", "products/update", "products/delete" ]
+  uri = "/webhooks/products/update"
+
+  # Purchase attribution for quiz analytics
+  [[webhooks.subscriptions]]
+  topics = [ "orders/create" ]
+  uri = "/webhooks/orders/create"

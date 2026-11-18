@@ -1,0 +1,97 @@
+// RitFit Quiz — database schema
+// Postgres in every environment (local + Railway). Set DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+/// A quiz. The editable content lives in `draft` (JSON, see app/lib/quiz/schema.ts).
+/// Publishing copies `draft` into `published`; the storefront only ever reads `published`.
+model Quiz {
+  id          String     @id @default(cuid())
+  shop        String
+  title       String
+  status      String     @default("draft") // draft | published | archived
+  draft       Json
+  published   Json?
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  responses   Response[]
+  events      Event[]
+
+  @@index([shop])
+}
+
+/// One shopper's run through a quiz.
+model Response {
+  id                 String    @id @default(cuid())
+  quizId             String
+  quiz               Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  shop               String
+  visitorId          String
+  answers            Json // { [questionId]: string[] answerIds }
+  answerLabels       Json // { [question title]: string[] answer labels } — readable copy for export / Klaviyo
+  email              String?
+  emailConsent       Boolean   @default(false)
+  recommendedIds     Json // product GIDs, in rank order
+  klaviyoSyncedAt    DateTime?
+  klaviyoError       String?
+  orderId            String?
+  orderName          String?
+  orderTotal         Decimal?  @db.Decimal(12, 2)
+  orderCurrency      String?
+  purchasedAt        DateTime?
+  createdAt          DateTime  @default(now())
+
+  @@index([quizId, createdAt])
+  @@index([shop])
+}
+
+/// Funnel events: view, start, complete, add_to_cart, purchase
+model Event {
+  id         String   @id @default(cuid())
+  quizId     String
+  quiz       Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  shop       String
+  type       String
+  visitorId  String
+  responseId String?
+  value      Decimal? @db.Decimal(12, 2)
+  createdAt  DateTime @default(now())
+
+  @@index([quizId, type, createdAt])
+}
+
+/// Cached copy of the store catalog used by the recommendation engine.
+/// Refreshed on a TTL and whenever a products webhook arrives.
+model CatalogCache {
+  shop      String   @id
+  products  Json
+  syncedAt  DateTime
+}

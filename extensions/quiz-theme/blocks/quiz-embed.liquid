@@ -1,0 +1,53 @@
+{% comment %}
+  App embed: turn on once in Customize → App embeds → "RitFit Quiz".
+  - Loads the quiz script on every page so quizzes can open in a popup from any link
+    (href="#quiz-<id>" or data-ritfit-quiz-open="<id>") and on the hosted quiz page.
+  - Optionally shows a floating "Find your gear" button.
+{% endcomment %}
+<script src="{{ 'ritfit-quiz.js' | asset_url }}" defer></script>
+<link rel="stylesheet" href="{{ 'ritfit-quiz.css' | asset_url }}" media="print" onload="this.media='all'">
+{% if block.settings.floating_enabled and block.settings.quiz_id != blank %}
+  <button
+    type="button"
+    class="rq-floating rq-floating--{{ block.settings.floating_position }}"
+    data-ritfit-quiz-open="{{ block.settings.quiz_id | escape }}"
+  >
+    {{ block.settings.floating_label | escape }}
+  </button>
+{% endif %}
+
+{% schema %}
+{
+  "name": "RitFit Quiz",
+  "target": "body",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "floating_enabled",
+      "label": "Show floating quiz button",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "quiz_id",
+      "label": "Quiz ID for the floating button"
+    },
+    {
+      "type": "text",
+      "id": "floating_label",
+      "label": "Button label",
+      "default": "Find Your Gear"
+    },
+    {
+      "type": "select",
+      "id": "floating_position",
+      "label": "Button position",
+      "options": [
+        { "value": "right", "label": "Bottom right" },
+        { "value": "left", "label": "Bottom left" }
+      ],
+      "default": "right"
+    }
+  ]
+}
+{% endschema %}
